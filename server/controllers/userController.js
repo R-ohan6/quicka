@@ -25,40 +25,34 @@ export const getPublishedCreations= async (req, res )=>{
 
 }
 
-export const toggleLikeCreation = async (req, res )=>{
- try {
-    const {userId}= req.auth()
-    const {id} = req.body 
 
-    const [creation] = await sql `SELECT * FROM creations WHERE id = ${id}`
-    if(!creation){
-        return res.json ({success:false, message:"creations not found"})
-    }  
+export const toggleLikeCreation = async (req, res) => {
+  try {
+    const { userId } = req.auth();
+    const { id } = req.body;
+    const [creation] = await sql`SELECT * FROM creations WHERE id = ${id}`;
+    if (!creation) {
+      return res.json({ success: false, message: "creation not found" });
     }
-
-    const currentLikes=creation.likes;
-    const userIdStr= userId.toString();
+    const currentLikes = creation.likes;
+    const userIdStr = userId.toString();
     let updatedLikes;
     let message;
-
-    if(currentLikes.includes(userIdStr)){
-        updatedLikes = currentLikes.filter((user)=>user !== userIdStr);
-        message='creation unliked'
-    } else{
-        updatedLikes = [...currentLikes,userIdStr]
-        message ='creation liked'
+    if (currentLikes.includes(userIdStr)) {
+      updatedLikes = currentLikes.filter((user) => user !== userIdStr);
+      message = 'creation unliked';
+    } else {
+      updatedLikes = [...currentLikes, userIdStr];
+      message = 'creation liked';
     }
+    const formattedArray = `{${updatedLikes.join(',')}}`;
+    await sql`UPDATE creations SET likes =${formattedArray}::text[] WHERE id = ${id}`;
+    res.json({ success: true, message });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
 
-    const formattedArray = `{${updatedLikes.join(',')}}`
 
-
-     await sql`UPDATE creations SET likes =${formattedArray}::text[] WHERE id = ${id}`;
-   
-    res.json({ success: true , message});
- } catch (error) {
-    res.json({ success: false , message:error.message});
- }
-
-}
 
 
